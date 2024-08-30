@@ -1,8 +1,15 @@
-import pandas as pd
+import os
+from fastapi import HTTPException
 from app.core.logging import logger
-from app.services.custom_exceptions import FileValidationError
+from app.core.config import valid_extensions
 
 def validate_file_extension(filename: str):
-    logger.info("Inside file validation")
-    if not (filename.endswith('.csv') or filename.endswith('.xlsx')):
-        raise FileValidationError()
+    logger.info(f"Validating file extension for file: {filename}")
+    
+    ext = os.path.splitext(filename)[1].lower()  
+    
+    if ext not in valid_extensions:
+        logger.error(f"Invalid file extension: {ext}")
+        raise HTTPException(status_code=400, detail="Invalid file extension")
+    
+    logger.info(f"File extension validated: {ext}")
