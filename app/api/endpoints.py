@@ -1,5 +1,3 @@
-# app/api/endpoints.py
-from typing import List
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
 from app.api.elt import perform_elt
@@ -10,25 +8,23 @@ router = APIRouter()
 
 @router.get("/health")
 async def health_check():
+    logger.info("Health check endpoint hit")
     return JSONResponse(status_code=200, content={"message": "API is healthy"})
 
 @router.post("/upload")
-async def upload_files(files: List[UploadFile] = File(...)):
-    processed_files = []
-    count = 0
-    for file in files:
-        try:
-            logger.info(f"Received file for processing: {file.filename}")
-            validate_file_extension(file.filename)
-            data = await perform_elt(file)
-            processed_files.append(file.filename)
-            logger.info(f"ELT process completed successfully for file: {file.filename}")
-            logger.info(data)   
-            count = count + 1
-            logger.info(f"count: {count}")         
+async def upload_files(mtr_file: UploadFile = File(...), payment_file: UploadFile = File(...)):
+    logger.info("Upload endpoint hit")
 
-        except Exception as e:
-            logger.error(f"Error processing file {file.filename}: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Error processing file {file.filename}: {str(e)}")
+    try:
+        logger.info(f"Validating file extensions")
+        validate_file_extension(mtr_file.filename)
+        validate_file_extension(payment_file.filename)
 
-    return {"message": f"Successfully processed files: {processed_files}" }
+        logger.info(f"Processing files: {mtr_file.filename} and {payment_file.filename}")
+        
+        data = await perform_elt(mtr_file, payment_file)
+        logger.info(f"ELT process completed successfully for files: {mtr_file.filename} and {payment_file.filename}")
+        return {"message": "Successfully processed MTR and Payment files."}
+    except Exception as e:
+        logger.error(f"Error during ELT process: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error during ELT process: {str(e)}")
