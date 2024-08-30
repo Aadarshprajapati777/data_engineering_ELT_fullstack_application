@@ -28,7 +28,7 @@ async def perform_elt(mtr_file: UploadFile, payment_file: UploadFile):
     try:
         processed_mtr = process_mtr(mtr_df)
         logger.info("inside try block for loading processed mtr data")
-        load_processed_mtr_data_to_db(process_mtr)
+        load_processed_mtr_data_to_db(processed_mtr)
 
         processed_payment = process_payment(payment_df)
         logger.info("inside try block for loading processed payment data")
