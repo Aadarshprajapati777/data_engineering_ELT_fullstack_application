@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from app.db.database import create_tables, SessionLocal
 from app.api.endpoints import router as api_router
+from app.api.dashboard import router as summary
 from app.core.logging import logger
 
 @asynccontextmanager
@@ -17,6 +18,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 app.include_router(api_router, prefix="/api/v1")
+app.include_router(summary, prefix="/api/v1")
 
 if __name__ == "__main__":
     logger.info("Starting FastAPI server...")

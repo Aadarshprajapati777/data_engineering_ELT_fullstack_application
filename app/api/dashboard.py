@@ -1,48 +1,47 @@
-# app/api/endpoints/dashboard.py
+import pandas as pd
+from sqlalchemy.orm import Session
+from app.db.models import MergedData
 
-from fastapi import APIRouter, HTTPException
-from app.db.database import SessionLocal
-from app.db.models import ProcessedSummary, ProcessedCategory
-from app.core.logging import logger
+def fetch_and_summarize_merged_data(db: Session) -> pd.DataFrame:
+    # Fetch data from the database
+    query = db.query(MergedData).all()
+    df = pd.DataFrame([item.__dict__ for item in query])
+
+    # Drop SQLAlchemy metadata fields (if present)
+    df = df.drop(columns=['_sa_instance_state'], errors='ignore')
+
+    # Ensure columns are present
+    required_columns = ['order_id', 'p_description', 'net_amount']
+    missing_columns = [col for col in required_columns if col not in df.columns]
+    
+    if missing_columns:
+        raise KeyError(f"Missing columns in MergedData DataFrame: {', '.join(missing_columns)}")
+    
+    # Convert net_amount to numeric, forcing errors to NaN and fill NaN with 0
+    df['net_amount'] = pd.to_numeric(df['net_amount'], errors='coerce').fillna(0)
+    
+    # Filter out rows with empty or blank Order ID
+    filtered_df = df[df['order_id'].str.strip() != '']
+
+    # Create summary based on p_description and sum of net_amount
+    summary = filtered_df.groupby('p_description').agg({'net_amount': 'sum'}).reset_index()
+    summary.rename(columns={'net_amount': 'Sum of Net Amount'}, inplace=True)
+    
+    return summary
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from app.db.database import get_db
+from app.core.logging import logger 
 
 router = APIRouter()
 
-@router.get("/dashboard/summary")
-def get_summary():
-    logger.info("Fetching summary data for dashboard")
-    session = SessionLocal()
-    
+@router.get("/summary")
+async def get_summary(db: Session = Depends(get_db)):
     try:
-        summaries = session.query(ProcessedSummary).all()
-        if not summaries:
-            logger.warning("No summary data found in the database")
-        else:
-            logger.info(f"Found {len(summaries)} summary records")
-        
-        result = [{"description": s.description, "sum_net_amount": s.sum_net_amount} for s in summaries]
-        return {"status": "success", "data": result}
+        summary = fetch_and_summarize_merged_data(db)
+        logger.info("Summary fetched successfully")
+        return {"summary": summary.to_dict(orient='records')}
     except Exception as e:
-        logger.error(f"Error fetching summary data: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error fetching summary data")
-    finally:
-        session.close()
-
-@router.get("/dashboard/categorized")
-def get_categorized_data():
-    logger.info("Fetching categorized data for dashboard")
-    session = SessionLocal()
-    
-    try:
-        categories = session.query(ProcessedCategory).all()
-        if not categories:
-            logger.warning("No categorized data found in the database")
-        else:
-            logger.info(f"Found {len(categories)} categorized records")
-        
-        result = [{"order_id": c.order_id, "category": c.category, "details": c.details} for c in categories]
-        return {"status": "success", "data": result}
-    except Exception as e:
-        logger.error(f"Error fetching categorized data: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error fetching categorized data")
-    finally:
-        session.close()
+        logger.error(f"Error fetching summary: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error fetching summary: {str(e)}")
