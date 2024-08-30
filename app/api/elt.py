@@ -4,7 +4,7 @@ from app.db.database import SessionLocal
 from app.db.models import MergedData
 from app.services.extract import extract_data
 from app.services.transform import process_mtr, process_payment, merge_datasets
-from app.services.load import load_data_to_db
+from app.services.load import load_merged_data_to_db, load_processed_mtr_data_to_db, load_processed_payment_data_to_db
 from app.core.logging import logger
 import pandas as pd
 from io import BytesIO
@@ -27,8 +27,14 @@ async def perform_elt(mtr_file: UploadFile, payment_file: UploadFile):
     
     try:
         processed_mtr = process_mtr(mtr_df)
+        logger.info("inside try block for loading processed mtr data")
+        load_processed_mtr_data_to_db(process_mtr)
+
         processed_payment = process_payment(payment_df)
-        logger.info("Data processing successful")
+        logger.info("inside try block for loading processed payment data")
+        load_processed_payment_data_to_db(processed_payment)
+
+        logger.info("Data processing and loading of payment and mtr successful")
     except Exception as e:
         logger.error(f"Error during data processing: {str(e)}")
         raise e
@@ -43,7 +49,9 @@ async def perform_elt(mtr_file: UploadFile, payment_file: UploadFile):
     # Clean up the DataFrame before loading it into the database
     try:
         clean_merged_df(merged_df)
-        load_data_to_db(merged_df)
+
+        load_merged_data_to_db(merged_df)
+
         logger.info("Data loading to DB successful")
     except Exception as e:
         logger.error(f"Error during data loading to DB: {str(e)}")

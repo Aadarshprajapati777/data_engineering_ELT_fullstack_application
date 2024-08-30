@@ -30,7 +30,9 @@ def process_payment(payment_df: pd.DataFrame) -> pd.DataFrame:
     else:
         logger.error("The 'type' or 'Type' column is missing in the Payment file.")
         raise KeyError("'type' or 'Type' column is missing")
-
+    
+    if 'description' in payment_df.columns:
+        payment_df.rename(columns={'description': 'p_description'}, inplace=True)
     # Remove rows with 'Transfer' in 'Payment Type'
     payment_df = payment_df[~payment_df['Payment Type'].str.contains('Transfer', case=False, na=False)]
 
