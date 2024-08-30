@@ -48,3 +48,37 @@ def process_payment(payment_df: pd.DataFrame) -> pd.DataFrame:
 
     logger.info("Payment data processing successful")
     return payment_df
+
+
+def merge_datasets(mtr_df: pd.DataFrame, payment_df: pd.DataFrame) -> pd.DataFrame:
+    logger.info("Merging MTR and Payment data")
+    
+    # Standardize column names
+    mtr_df.columns = mtr_df.columns.str.strip().str.lower().str.replace(' ', '_')
+    payment_df.columns = payment_df.columns.str.strip().str.lower().str.replace(' ', '_')
+
+    # Merge datasets on 'order_id'
+    if 'order_id' in mtr_df.columns and 'order_id' in payment_df.columns:
+        merged_df = pd.merge(mtr_df, payment_df, on='order_id', how='outer')
+        
+        required_columns = [
+            'order_id', 'transaction_type', 'payment_type', 
+            'invoice_amount', 'net_amount', 'p_description',
+            'order_date', 'payment_date'
+        ]
+        
+        for column in required_columns:
+            if column not in merged_df.columns:
+                merged_df[column] = None
+        
+        # Select and reorder columns based on the exemplar
+        merged_df = merged_df[required_columns]
+        
+        logger.info(f"Merged DataFrame columns: {merged_df.columns.tolist()}")
+        logger.info("Data merging successful")
+    else:
+        logger.error("Column 'Order ID' not found in one of the datasets.")
+        raise KeyError("'Order ID' column is missing")
+
+    return merged_df
+
