@@ -95,7 +95,6 @@ def process_payment(payment_df: pd.DataFrame) -> pd.DataFrame:
     return payment_df
 
 
-
 def merge_datasets(mtr_df: pd.DataFrame, payment_df: pd.DataFrame) -> pd.DataFrame:
     logger.info("Merging MTR and Payment data")
     
@@ -103,11 +102,19 @@ def merge_datasets(mtr_df: pd.DataFrame, payment_df: pd.DataFrame) -> pd.DataFra
     mtr_df.columns = mtr_df.columns.str.strip().str.lower().str.replace(' ', '_')
     payment_df.columns = payment_df.columns.str.strip().str.lower().str.replace(' ', '_')
 
+    # Rename 'total' to 'net_amount' in payment_df for consistency
     payment_df.rename(columns={'total': 'net_amount'}, inplace=True)
 
     # Merge datasets on 'order_id'
     if 'order_id' in mtr_df.columns and 'order_id' in payment_df.columns:
-        merged_df = pd.merge(mtr_df, payment_df, on='order_id', how='outer')
+        # Use suffixes to differentiate between the same columns from both DataFrames
+        merged_df = pd.merge(mtr_df, payment_df, on='order_id', how='outer', suffixes=('_mtr', '_payment'))
+        
+        # Combine the 'transaction_type' from both DataFrames, prioritizing non-None values
+        merged_df['transaction_type'] = merged_df['transaction_type_mtr'].combine_first(merged_df['transaction_type_payment'])
+
+        # Clean up by dropping the suffix columns
+        merged_df.drop(columns=['transaction_type_mtr', 'transaction_type_payment'], inplace=True)
         
         required_columns = [
             'order_id', 'transaction_type', 'payment_type', 
@@ -115,6 +122,7 @@ def merge_datasets(mtr_df: pd.DataFrame, payment_df: pd.DataFrame) -> pd.DataFra
             'order_date', 'payment_date'
         ]
         
+        # Ensure all required columns are present
         for column in required_columns:
             if column not in merged_df.columns:
                 merged_df[column] = None
