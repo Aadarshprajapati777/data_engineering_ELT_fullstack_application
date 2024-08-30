@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy import Column, Integer, String, Float, Date
 from app.db.database import Base
 
 class MergedData(Base):
@@ -8,20 +8,8 @@ class MergedData(Base):
     order_id = Column(String, index=True)
     transaction_type = Column(String)
     payment_type = Column(String)
-    net_amount = Column(Float)
     invoice_amount = Column(Float)
-    payment_net_amount = Column(Float)
-    shipment_invoice_amount = Column(Float)
-    # Additional fields based on your dataset
-
-class TransformedData(Base):
-    __tablename__ = "transformed_data"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    dataset = Column(String, index=True)
-    order_id = Column(String, index=True)
-    transaction_type = Column(String)
-    payment_type = Column(String)
     net_amount = Column(Float)
-    invoice_amount = Column(Float)
-    # Additional fields as needed
+    p_description = Column(String)
+    order_date = Column(Date)
+    payment_date = Column(Date)
