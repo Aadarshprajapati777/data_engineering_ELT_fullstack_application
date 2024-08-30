@@ -1,6 +1,11 @@
 import pandas as pd
 from sqlalchemy.orm import Session
 from app.db.models import MergedData
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from app.db.database import get_db
+from app.core.logging import logger 
+import numpy as np 
 
 def fetch_and_summarize_merged_data(db: Session) -> pd.DataFrame:
     # Fetch data from the database
@@ -29,10 +34,6 @@ def fetch_and_summarize_merged_data(db: Session) -> pd.DataFrame:
     
     return summary
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from app.db.database import get_db
-from app.core.logging import logger 
 
 router = APIRouter()
 
