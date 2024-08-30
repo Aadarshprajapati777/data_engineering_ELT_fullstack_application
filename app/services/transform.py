@@ -103,6 +103,8 @@ def merge_datasets(mtr_df: pd.DataFrame, payment_df: pd.DataFrame) -> pd.DataFra
     mtr_df.columns = mtr_df.columns.str.strip().str.lower().str.replace(' ', '_')
     payment_df.columns = payment_df.columns.str.strip().str.lower().str.replace(' ', '_')
 
+    payment_df.rename(columns={'total': 'net_amount'}, inplace=True)
+
     # Merge datasets on 'order_id'
     if 'order_id' in mtr_df.columns and 'order_id' in payment_df.columns:
         merged_df = pd.merge(mtr_df, payment_df, on='order_id', how='outer')
@@ -127,4 +129,3 @@ def merge_datasets(mtr_df: pd.DataFrame, payment_df: pd.DataFrame) -> pd.DataFra
         raise KeyError("'Order ID' column is missing")
 
     return merged_df
-
