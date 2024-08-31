@@ -1,18 +1,46 @@
-// app/api/api.js
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-const API_URL = 'http://localhost:8000/api/v1';
+if (!API_URL) {
+  console.error("API URL is not defined. Please check your environment variables.");
+  throw new Error("API URL is not defined. Please check your environment variables.");
+}
+
+console.log("API URL is: ", API_URL);
+
+const defaultHeaders = {
+  'Content-Type': 'application/json',
+};
+
+const request = async (endpoint, options = {}) => {
+  try {
+    const response = await fetch(`${API_URL}${endpoint}`, options);
+    if (!response.ok) {
+      const errorMessage = `HTTP error! Status: ${response.status} - ${response.statusText}`;
+      console.error(errorMessage);
+      throw new Error(errorMessage);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error in API request:", error);
+    throw error;
+  }
+};
 
 export const uploadFiles = async (formData) => {
-  const response = await axios.post(`${API_URL}/upload`, formData);
-  return response.data;
+  const options = {
+    method: 'POST',
+    body: formData,
+  };
+
+  return await request('/upload', options);
 };
 
 export const fetchSummary = async () => {
-  const response = await fetch(`${API_URL}/summary`);
-  return response.data;
+  const data = await request('/summary');
+  return data.summary || [];
 };
 
-export const fetchGroupedData = async () => {
-  const response = await fetch(`${API_URL}/grouped_data`);
-  return response.data;
+export const fetchGroupedData = async (page = 1) => {
+  return await request(`/grouped_data?page=${page}`);
 };
