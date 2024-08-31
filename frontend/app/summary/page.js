@@ -1,20 +1,28 @@
-// app/summary/page.js
 "use client"
 import React, { useEffect, useState } from 'react';
 import Sidebar from '../components/layout/      Sidebar';
 import Topbar from '../components/layout/      Topbar';
-import OrderTable from '../components/table/      OrderTable';
-import { fetchGroupedData } from '../api/api'
+import SummaryTable from '../components/table/SummaryTable';
+import Loader from '../components/loader/Loader';
+import { fetchSummary } from '../api/api';
+import { AnimatePresence } from 'framer-motion';
 
 const SummaryPage = () => {
-  const [groupedData, setGroupedData] = useState([]);
+  const [summary, setSummary] = useState([]);
+  const [loading, setLoading] = useState(true);  
 
   useEffect(() => {
-    const loadGroupedData = async () => {
-      const data = await fetchGroupedData();
-      setGroupedData(data);
+    const loadSummary = async () => {
+      try {
+        const data = await fetchSummary();
+        setSummary(data);  
+      } catch (error) {
+        console.error('Error fetching summary data:', error);
+      } finally {
+        setLoading(false);  
+      }
     };
-    loadGroupedData();
+    loadSummary();
   }, []);
 
   return (
@@ -23,7 +31,13 @@ const SummaryPage = () => {
       <div className="flex-1 flex flex-col">
         <Topbar />
         <div className="p-4">
-          <OrderTable orders={groupedData} />
+          <AnimatePresence>
+            {loading && <Loader />}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {!loading && <SummaryTable summary={summary} />}
+          </AnimatePresence>
         </div>
       </div>
     </div>
