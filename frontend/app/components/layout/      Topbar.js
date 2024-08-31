@@ -1,4 +1,3 @@
-// app/components/layout/Topbar.js
 const Topbar = () => {
     return (
       <div className="bg-white shadow-md p-4 flex justify-between items-center">
