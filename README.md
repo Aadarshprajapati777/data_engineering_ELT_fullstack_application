@@ -82,6 +82,11 @@ mail to:
 ```bash
 geekaadarsh.dev@gmail.com
 ```
+
 for any suggestion or help
 
 # Screenshots
+![Screenshot from 2024-08-31 12-47-34](https://github.com/user-attachments/assets/2c881a56-26b4-40de-b764-d8a42fe66d69)
+![Screenshot from 2024-08-31 12-46-30](https://github.com/user-attachments/assets/2795c90c-d92b-483b-b25c-77886270ae0c)
+![Screenshot from 2024-08-31 12-46-17](https://github.com/user-attachments/assets/022abad3-6036-43b7-954c-ac1eded74db1)
+![Screenshot from 2024-08-31 12-45-51](https://github.com/user-attachments/assets/503da8fa-e86e-43ce-9745-e9a4359c386b)
