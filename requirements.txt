@@ -1,8 +1,0 @@
-fastapi
-uvicorn
-sqlalchemy
-pandas
-pydantic
-psycopg2-binary
-python-multipart
-json-log-formatter
